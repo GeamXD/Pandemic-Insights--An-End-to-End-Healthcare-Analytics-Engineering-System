@@ -1,0 +1,16 @@
+dbt-core
+dbt-postgres
+dbt-bigquery
+dbt-snowflake
+dbt-redshift
+pandas
+numpy
+requests
+sqlalchemy
+pytest
+pytest-cov
+black
+scikiit-learn
+xgboost
+lightgbm
+plotly
