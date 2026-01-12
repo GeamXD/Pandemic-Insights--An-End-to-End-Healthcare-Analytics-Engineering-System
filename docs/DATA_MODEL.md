@@ -23,7 +23,7 @@ All source data is stored in the `data/raw/` directory:
 | `death-rate-from-cardiovascular-disease.csv` | Cardiovascular disease death rates | By country |
 | `gross-domestic-product.csv` | GDP per capita | By country |
 | `human-development-index.csv` | HDI scores | By country |
-| `hopsital-beds-and-handwashing.csv` | Hospital beds per capita and handwashing facilities | By country |
+| `hospital-beds-and-handwashing.csv` | Hospital beds per capita and handwashing facilities | By country |
 | `smoking.csv` | Smoking prevalence | By country |
 
 ### Raw Database Schema

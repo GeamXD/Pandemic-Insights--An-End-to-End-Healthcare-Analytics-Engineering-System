@@ -59,7 +59,7 @@ This script will create 18 raw tables in the `raw_covid` schema:
 - new_cases_7day_avg
 - median_age_and_life_expectancy
 - human_development_index
-- hopsital_beds_and_handwashing
+- hospital_beds_and_handwashing
 - high_risk_age_groups
 - gross_domestic_product
 - diabetes_prevalence
