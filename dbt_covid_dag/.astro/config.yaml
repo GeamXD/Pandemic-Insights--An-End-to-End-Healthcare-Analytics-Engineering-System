@@ -1,0 +1,4 @@
+postgres:
+    port: "5444"
+project:
+    name: dbt-covid-dag

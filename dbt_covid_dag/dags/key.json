@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "healthcare-analytics-471307",
+  "private_key_id": "a967f450251677e5c83aecac06f25cf0253eca2d",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCwa6gdbOKxwKmf\nQmddvOx2HKBztirglJ87hKEd8CTI5jp8PYibwvf5aKZO2wSTBR1jFdauY6RW213/\nwTTznc5mx6sQPcUYe3v6Q8iMYRHR4vnKKXAAWNXj4icurkJ41WLr6Fsx57A9OQKZ\nc60wvJZmiW2NEh1X/tNtTDNiH/3xO6S1/H9NacfhhRiUQDZuXxGeW43WNi9yqM7D\nAsqus8pZ6aAVHZyWVnYMVhTFRKKzWk9ZQDPkeGW6i4PX7DQiUVpzgHuiTt3xGiwK\nUtuRYkxnZ8vOhfJV81BjPH43JLy9LSNEEsPqmt/diFg/D6irrO7J+/DzOviuVBSC\np63T9wThAgMBAAECggEAEVBiKDp38xRNRq0t137Dltc6DgZ0+yPK5CdLkqnEn8Is\nlOXgbXz7I4tC4HP75Rvi5Zxj5yst7+eejYueJpc4WvuXN8RVfrtxED+CbqMrgbWX\naIucNi8saq2Bb+zikYOhA4sDFt49/HwxsPKv2XEgskEkMxdHMaF3iX9UKaSpzPiw\n+z+7kNMdW+y3YsjcZ9COgpgXy/hjuW0wWq9tupHNHKM8uN3LkfhuXEulHs7qjyPq\nIQ4N/3eVqvTkvn7jsz+kMlXkhCAI4NCLV081QaFNixElxo0hROY98mW92GUYhiYN\nBgorVW9ZeKkJhcpQD6Vfal3gqEdyp9lVZTnc9fK60wKBgQDWar027HYb7htDSmZL\nTKQMaJTSxfolNi2cEP6bjL0BqR8phNLGqXOhW1dh/Vz1BzODDk0Nj0AOvX8/TGvK\nTMGO0JgMrOo03r06m+0Upa95LBQX87YvKG/Jf52YmH5uBs+3/LkBayDkEKs6NZQz\nam9BbsIx+T7glmMZgxs65ETDGwKBgQDSon3JMhkBW5ebPLhTG4lEpgOPJxLPhAP8\nhfAHHlIn0eK4rxd+Wa2fS2nNZaOTZqAGNmr8Ip8tHXbXzAPwJALb0RntMKLxn6FS\nyvY8YgcQ22qYUSxcwmZCNjqbKHChiz46MUycN6+uJWcrhgXQ10ivxlWc8+rZYwqi\n661YNBhbswKBgDCQpKLYFDhnSg2HwHu1tEKLPYowBWSATPxYbRLWYckKgWBqEUOm\nBea6RaSQOonVQ7mfd5xmod+01CmGKbP8hqrOXGIimDm5aarovl462O/dJ//014L+\n6bL+ELgLcjeBm3LU7yJ/HUgK7n2UvSiYJvLvH1UqWy+LYI7av0Qrh9eZAoGAco5T\nMOhhNx7UTmZwrSpttns/tkx+64OWE3HYwFZaQjPhRaZcdahaSCdgrIfZteH7qEVS\nXDyMK6I5r1XS0nkTYO/RVPG9vQGfYILn9qEtzJo42AxVv0EvElWh/B67WvB68HU9\ngDy8/E51VPN4GEPt0UNh7pGuKXq3HzJkPXNfyAcCgYEAhgUowmJu1CY6HJ6E6vzD\nNrhkeevLn3UI7Lq5hKzEyjcbQlxAGfp8es0NofBfiJegR6YbixGJu1urSXCRm5LT\nYDCyLcSei00uyLAmyOz/5ej1x8go078BkgeZaBQK9HKrAaDBGdHjeN3xc7uBPsmY\njUojLOH9yn6eSIbrOCKsj3E=\n-----END PRIVATE KEY-----\n",
+  "client_email": "dbt-runner@healthcare-analytics-471307.iam.gserviceaccount.com",
+  "client_id": "108210439012790538601",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dbt-runner%40healthcare-analytics-471307.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
