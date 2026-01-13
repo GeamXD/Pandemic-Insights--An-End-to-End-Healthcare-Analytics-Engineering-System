@@ -112,7 +112,7 @@ We welcome various types of contributions:
 
 4. **Test your setup**:
    ```bash
-   cd covid
+   cd dbt_covid
    dbt debug
    dbt run
    dbt test

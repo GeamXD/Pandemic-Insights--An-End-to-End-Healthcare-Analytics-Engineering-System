@@ -81,7 +81,7 @@ Pandemic Insights is an end-to-end healthcare analytics engineering system desig
 ### 2. Transformation Layer (dbt)
 - **Tool**: dbt (Data Build Tool)
 - **Database**: PostgreSQL
-- **Project**: `covid` dbt project
+- **Project**: `dbt_covid` dbt project
 - **Profiles**: Configured in `~/.dbt/profiles.yml`
 
 #### Medallion Architecture Layers:

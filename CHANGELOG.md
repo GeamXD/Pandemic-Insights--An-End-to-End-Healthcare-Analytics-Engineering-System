@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Removed service account key file (key.json) containing sensitive credentials from the repository to improve security and prevent accidental exposure
+
+### Changed
+- Updated all technical documentation to use correct directory names:
+  - `dbt_covid/` instead of `covid/`
+  - `dbt_covid_dag/` instead of `covid_dbt_dag/`
+- Fixed inconsistencies between documentation and actual repository structure
+
 ### Added
 - Comprehensive technical documentation suite
   - ARCHITECTURE.md - System architecture and design

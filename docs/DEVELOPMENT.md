@@ -6,14 +6,14 @@ This guide covers the development workflow, best practices, and guidelines for c
 
 ```
 Pandemic-Insights/
-├── covid/                          # dbt project
+├── dbt_covid/                      # dbt project
 │   ├── analyses/                   # Ad-hoc queries
 │   ├── dbt_project.yml            # dbt configuration
 │   ├── macros/                    # Reusable SQL macros
 │   │   └── generate_schema_name.sql
 │   ├── models/                    # dbt models (core of the project)
 │   │   ├── staging/              # Staging layer (views)
-│   │   │   ├── raw_covid.yml    # Source definitions and tests
+│   │   │   ├── sources.yml       # Source definitions and tests
 │   │   │   └── stg_*.sql        # Staging models
 │   │   ├── bronze/              # Bronze layer (tables)
 │   │   │   └── brz__*.sql       # Bronze models
@@ -28,9 +28,9 @@ Pandemic-Insights/
 │   ├── snapshots/                # Snapshot models (SCD Type 2)
 │   └── tests/                    # Custom data tests
 │
-├── covid_dbt_dag/                # Airflow project
+├── dbt_covid_dag/                # Airflow project
 │   ├── dags/                     # Airflow DAGs
-│   │   ├── covid/               # dbt project copy for Airflow
+│   │   ├── dbt_covid/            # dbt project copy for Airflow
 │   │   └── covid_dag.py         # Main DAG definition
 │   ├── Dockerfile               # Airflow container image
 │   ├── docker-compose.override.yml
@@ -77,7 +77,7 @@ pip install -r requirements.txt
 #### Daily Development Commands
 
 ```bash
-cd covid
+cd dbt_covid
 
 # Check connection
 dbt debug
@@ -193,7 +193,7 @@ dbt docs serve  # Opens browser at http://localhost:8080
 #### Local Development with Astronomer CLI
 
 ```bash
-cd covid_dbt_dag
+cd dbt_covid_dag
 
 # Start Airflow locally
 astro dev start
@@ -213,7 +213,7 @@ astro dev pytest
 
 #### Modifying the DAG
 
-1. Edit `covid_dbt_dag/dags/covid_dag.py`
+1. Edit `dbt_covid_dag/dags/covid_dag.py`
 2. Save the file
 3. Airflow will automatically detect changes (may take 30 seconds)
 4. Refresh Airflow UI to see updates
@@ -467,7 +467,7 @@ If this query returns rows, the test fails.
 ### Airflow DAG Tests
 
 ```bash
-cd covid_dbt_dag
+cd dbt_covid_dag
 
 # Run pytest
 astro dev pytest
@@ -483,7 +483,7 @@ pytest tests/dags/
 ```bash
 # Compile model to see generated SQL
 dbt compile --select model_name
-# Check target/compiled/covid/models/...
+# Check target/compiled/dbt_covid/models/...
 
 # Run with debug output
 dbt run --select model_name --debug
