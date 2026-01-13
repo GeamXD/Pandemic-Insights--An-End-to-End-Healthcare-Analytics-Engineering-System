@@ -1,18 +1,16 @@
 WITH months AS (
-    SELECT explode(
-        sequence(
-            to_date('2019-01-01'),
-            to_date('2021-12-01'),
-            interval 1 month
-        )
+    SELECT month_start_date
+    FROM UNNEST(
+        GENERATE_DATE_ARRAY('2019-01-01', '2021-12-01', INTERVAL 1 MONTH)
     ) AS month_start_date
 )
+
 SELECT
-    CAST(date_format(month_start_date, 'yyyyMM') AS INT) AS date_key,
-    year(month_start_date) AS year,
-    date_format(month_start_date, 'MMMM') AS month_name,
-    date_format(month_start_date, 'MMM') AS month_short_name,
-    CONCAT('Q', quarter(month_start_date)) AS quarter,
-    CONCAT(year(month_start_date), '-Q', quarter(month_start_date)) AS year_quarter,
+    CAST(FORMAT_DATE('%Y%m', month_start_date) AS INT64) AS date_key,
+    EXTRACT(YEAR FROM month_start_date) AS year,
+    FORMAT_DATE('%B', month_start_date) AS month_name,
+    FORMAT_DATE('%b', month_start_date) AS month_short_name,
+    CONCAT('Q', EXTRACT(QUARTER FROM month_start_date)) AS quarter,
+    CONCAT(EXTRACT(YEAR FROM month_start_date), '-Q', EXTRACT(QUARTER FROM month_start_date)) AS year_quarter,
     month_start_date AS date
-FROM months;
+FROM months

@@ -2,16 +2,18 @@ WITH
     new_deaths_month AS (
         SELECT
             TRIM(geography) AS code,
-            TO_DATE(date, 'MON-YY') AS date,
-            CAST(new_deaths_per_month_count as FLOAT)
+            -- FIX: Changed %y to %Y to match "Apr-2020" format
+            PARSE_DATE('%b-%Y', REPLACE(date, ' ', '-')) AS date,
+            SAFE_CAST(new_deaths_per_month_count as FLOAT64) as new_deaths_per_month_count
         FROM {{ ref('brz__new_deaths_per_month') }}
 
     ),
     new_cases_month AS (
         SELECT
             TRIM(geography) AS code,
-            TO_DATE(date, 'MON-YY') AS date,
-            CAST(new_cases_per_month_count as FLOAT)
+            -- FIX: Changed %y to %Y here too
+            PARSE_DATE('%b-%Y', REPLACE(date, ' ', '-')) AS date,
+            SAFE_CAST(new_cases_per_month_count as FLOAT64) as new_cases_per_month_count
         FROM {{ ref('brz__new_cases_per_month') }}
     )
 
