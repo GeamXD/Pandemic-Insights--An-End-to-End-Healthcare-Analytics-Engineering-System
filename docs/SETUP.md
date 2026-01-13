@@ -212,7 +212,7 @@ astro dev start
 
 This will start:
 - Airflow Webserver: http://localhost:8080
-- Postgres Database: localhost:5432
+- Postgres Database (Airflow metadata only): localhost:5432
 - Default credentials: admin/admin
 
 **Access Airflow UI:**
@@ -387,8 +387,8 @@ After successful setup:
 - **Update dbt packages**: `dbt deps --upgrade`
 - **Update Python dependencies**: `pip install --upgrade -r requirements.txt`
 - **Update Airflow**: `astro dev upgrade` or update base image in Dockerfile
-- **Vacuum database**: Regular PostgreSQL maintenance
-- **Monitor disk space**: For Airflow logs and database
+- **Monitor BigQuery usage**: Check query costs and slot usage in GCP Console
+- **Monitor disk space**: For Airflow logs
 
 ### Backup
 

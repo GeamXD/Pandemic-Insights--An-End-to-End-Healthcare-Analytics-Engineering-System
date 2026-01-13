@@ -350,7 +350,7 @@ Use conventional commit format:
 ```bash
 feat(gold): Add fact_vaccination model
 fix(silver): Handle null values in slv_covid_daily
-docs(setup): Update PostgreSQL installation instructions
+docs(setup): Update BigQuery installation instructions
 test(bronze): Add tests for brz__new_cases_7day_avg
 refactor(staging): Simplify staging layer queries
 ```
