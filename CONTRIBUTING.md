@@ -77,7 +77,7 @@ We welcome various types of contributions:
 
 ### Prerequisites
 - Python 3.8+
-- PostgreSQL 12+
+- Google Cloud Platform account with BigQuery enabled
 - Docker & Docker Compose (for Airflow)
 - Git
 
@@ -90,10 +90,16 @@ We welcome various types of contributions:
    pip install -r requirements.txt
    ```
 
-2. **Set up PostgreSQL**:
+2. **Set up BigQuery**:
    ```bash
-   createdb covid_dev
-   psql -d covid_dev -f "SCHEMA AND LOAD.sql"
+   # Set your GCP project
+   gcloud config set project YOUR_PROJECT_ID
+   
+   # Create dataset
+   bq mk --dataset --location=US YOUR_PROJECT_ID:covid
+   
+   # Load data using the provided script
+   ./raw_files_to_bigquery.sh
    ```
 
 3. **Configure dbt profile** (`~/.dbt/profiles.yml`):
@@ -102,12 +108,13 @@ We welcome various types of contributions:
      target: dev
      outputs:
        dev:
-         type: postgres
-         host: localhost
-         user: postgres
-         password: your_password
-         database: covid_dev
-         schema: staging
+         type: bigquery
+         method: service-account
+         project: YOUR_PROJECT_ID
+         dataset: covid
+         location: US
+         keyfile: /path/to/your/keyfile.json
+         threads: 4
    ```
 
 4. **Test your setup**:
@@ -202,7 +209,7 @@ Related to #[issue number]
 ### SQL Style Guide (dbt Models)
 
 ```sql
--- Good example
+-- Good example (BigQuery syntax)
 WITH base_data AS (
     SELECT
         -- Keys
@@ -220,7 +227,7 @@ WITH base_data AS (
 calculated AS (
     SELECT
         *,
-        new_deaths::FLOAT / NULLIF(new_cases, 0) * 100 as case_fatality_rate
+        SAFE_DIVIDE(new_deaths, new_cases) * 100 as case_fatality_rate
     FROM base_data
 )
 

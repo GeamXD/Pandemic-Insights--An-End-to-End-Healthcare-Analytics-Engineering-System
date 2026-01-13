@@ -28,19 +28,19 @@ All source data is stored in the `data/raw/` directory:
 
 ### Raw Database Schema
 
-**Schema**: `raw_covid`
+**Dataset**: `covid` (with `raw_covid` prefix for raw tables in BigQuery)
 
 All raw tables follow a similar structure:
 ```sql
-CREATE TABLE raw_covid.{table_name} (
-    Geography VARCHAR(256),
-    date VARCHAR(256),        -- For time-series data
-    Indicator VARCHAR(256),   -- For data with indicators
-    Count VARCHAR(256)
+CREATE TABLE `project.covid.raw_covid_table_name` (
+    Geography STRING,
+    date STRING,        -- For time-series data
+    Indicator STRING,   -- For data with indicators
+    Count STRING
 );
 ```
 
-Note: Raw tables use VARCHAR for all columns to handle data quality issues during ingestion.
+Note: Raw tables use STRING for all columns to handle data quality issues during ingestion.
 
 ## Medallion Architecture
 
@@ -55,7 +55,7 @@ RAW DATA → STAGING → BRONZE → SILVER → GOLD
 
 **Purpose**: Direct source references with no transformation  
 **Materialization**: Views  
-**Schema**: References `raw_covid` schema  
+**Dataset**: References `covid` dataset (raw tables)  
 **Pattern**: `stg_raw_covid__*`
 
 **Models**: All staging models are simple `SELECT * FROM {{ source() }}` statements.
@@ -72,11 +72,11 @@ SELECT * FROM {{ source('raw_covid', 'new_cases_7day_avg') }}
 
 **Purpose**: Type casting, column renaming, and timestamping  
 **Materialization**: Tables  
-**Schema**: `bronze`  
+**Dataset**: `bronze` (in BigQuery, these are in the `covid` dataset with `bronze` schema prefix)
 **Pattern**: `brz__*`
 
 **Transformations**:
-- Cast columns to appropriate types (VARCHAR → appropriate types)
+- Cast columns to appropriate types (STRING → appropriate types)
 - Rename columns to snake_case
 - Add `read_timestamp` for data lineage
 - Keep all raw data (no filtering)
@@ -89,7 +89,7 @@ SELECT
     date,
     indicator as new_cases_7day_avg_indicator,
     count as new_cases_7day_avg,
-    CURRENT_TIMESTAMP as read_timestamp
+    CURRENT_TIMESTAMP() as read_timestamp
 FROM {{ ref('stg_raw_covid__new_cases_7day_avg') }}
 ```
 
@@ -97,7 +97,7 @@ FROM {{ ref('stg_raw_covid__new_cases_7day_avg') }}
 
 **Purpose**: Cleaned, joined, and conformed business data  
 **Materialization**: Tables  
-**Schema**: `silver`  
+**Dataset**: `silver` (in BigQuery, these are in the `covid` dataset with `silver` schema prefix)
 **Pattern**: `slv_*`
 
 **Models**:
@@ -162,7 +162,7 @@ Gender-specific health metrics.
 
 **Purpose**: Business-ready star schema (facts and dimensions) and ML features  
 **Materialization**: Tables  
-**Schema**: `gold`  
+**Dataset**: `gold` (in BigQuery, these are in the `covid` dataset with `gold` schema prefix)
 **Pattern**: `fact_*`, `dim_*`, `ml_*`
 
 #### Dimension Tables
@@ -199,7 +199,7 @@ Date dimension for time intelligence.
 - `month`: Month number
 - `month_name`: Month name
 - `quarter`: Quarter
-- `day_of_week`: Day of week number
+- `day_of_week`: Day of week number (0-6, where 0 = Sunday in BigQuery)
 - `day_of_week_name`: Day name
 - `day_of_month`: Day of month
 - `day_of_year`: Day of year
@@ -326,18 +326,18 @@ Feature engineering for machine learning models.
 
 ```
 data/raw/new-cases-7day-avg.csv
-    ↓ (SQL COPY)
-raw_covid.new_cases_7day_avg
+    ↓ (BigQuery load)
+covid.new_cases_7day_avg (raw table)
     ↓ (dbt source)
 stg_raw_covid__new_cases_7day_avg (view)
     ↓ (dbt ref)
-brz__new_cases_7day_avg (table)
+brz__new_cases_7day_avg (table in bronze schema)
     ↓ (dbt ref)
-slv_covid_daily (table)
+slv_covid_daily (table in silver schema)
     ↓ (dbt ref)
-fact_covid_daily (table)
+fact_covid_daily (table in gold schema)
     ↓ (dbt ref)
-ml_features (table)
+ml_features (table in gold schema)
 ```
 
 ## Data Quality
@@ -359,9 +359,9 @@ ml_features (table)
 2. **Null Handling**: 
    - "Null" strings converted to actual NULL
    - COALESCE used for numeric fields (default to 0 where appropriate)
-3. **Type Casting**: All fields cast to appropriate types in bronze layer
+3. **Type Casting**: All fields cast to appropriate types in bronze layer (BigQuery native types)
 4. **Date Handling**: All dates cast to DATE type
-5. **Numeric Fields**: Cast to FLOAT with null handling
+5. **Numeric Fields**: Cast to FLOAT64 or INT64 with null handling
 
 ## Querying the Data
 
@@ -375,8 +375,8 @@ SELECT
     f.new_cases_7day_avg,
     f.new_deaths_7_day_avg,
     f.stringency_index
-FROM gold.fact_covid_daily f
-JOIN gold.dim_country c ON f.country_key = c.country_key
+FROM `YOUR_PROJECT_ID.covid.fact_covid_daily` f
+JOIN `YOUR_PROJECT_ID.covid.dim_country` c ON f.country_key = c.country_key
 WHERE c.country_name = 'United States'
 ORDER BY f.date_key DESC
 LIMIT 30;
@@ -388,9 +388,9 @@ SELECT
     c.country_name,
     SUM(f.new_cases_per_month) as total_cases,
     SUM(f.new_deaths_per_month) as total_deaths,
-    AVG(f.new_deaths_per_month::float / NULLIF(f.new_cases_per_month, 0)) * 100 as avg_case_fatality_rate
-FROM gold.fact_covid_monthly f
-JOIN gold.dim_country c ON f.country_key = c.country_key
+    AVG(SAFE_DIVIDE(CAST(f.new_deaths_per_month AS FLOAT64), f.new_cases_per_month)) * 100 as avg_case_fatality_rate
+FROM `YOUR_PROJECT_ID.covid.fact_covid_monthly` f
+JOIN `YOUR_PROJECT_ID.covid.dim_country` c ON f.country_key = c.country_key
 WHERE c.country_name IN ('United States', 'United Kingdom', 'Germany', 'France')
 GROUP BY c.country_name
 ORDER BY total_cases DESC;
@@ -407,7 +407,7 @@ SELECT
     case_fatality_rate,
     target_cases,
     target_deaths
-FROM gold.ml_features
+FROM `YOUR_PROJECT_ID.covid.ml_features`
 WHERE country_key = 'USA'
     AND date_key >= '2020-01-01'
     AND cases_lag_7d IS NOT NULL
@@ -419,13 +419,12 @@ ORDER BY date_key;
 ### Adding New Sources
 
 1. Add CSV file to `data/raw/`
-2. Create table in PostgreSQL (`raw_covid` schema)
-3. Load data via COPY or Python
-4. Add source to `raw_covid.yml`
-5. Create staging model: `stg_raw_covid__new_source.sql`
-6. Create bronze model: `brz__new_source.sql`
-7. Incorporate into silver/gold models as needed
-8. Run `dbt run` to materialize
+2. Load to BigQuery: `bq load --source_format=CSV --autodetect YOUR_PROJECT_ID:covid.table_name data/raw/file.csv`
+3. Add source to `raw_covid.yml`
+4. Create staging model: `stg_raw_covid__new_source.sql`
+5. Create bronze model: `brz__new_source.sql`
+6. Incorporate into silver/gold models as needed
+7. Run `dbt run` to materialize
 
 ### Modifying Existing Models
 
@@ -444,10 +443,11 @@ ORDER BY date_key;
 
 ## Performance Considerations
 
-1. **Indexes**: Create indexes on foreign keys and frequently filtered columns
-2. **Partitioning**: Consider partitioning large fact tables by date
-3. **Incremental Models**: Can be enabled for very large time-series data
-4. **Materialization**: Views for staging (low overhead), tables for higher layers (query performance)
+1. **Indexes**: BigQuery uses automatic indexing - no manual index creation needed
+2. **Partitioning**: Use DATE or TIMESTAMP partitioning for large fact tables in BigQuery
+3. **Clustering**: Define clustering columns for frequently filtered fields
+4. **Incremental Models**: Can be enabled for very large time-series data
+5. **Materialization**: Views for staging (low overhead), tables for higher layers (query performance)
 
 ## Documentation
 
