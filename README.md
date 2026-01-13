@@ -2,7 +2,7 @@
 
 [![dbt](https://img.shields.io/badge/dbt-Analytics-orange)](https://www.getdbt.com/)
 [![Airflow](https://img.shields.io/badge/Apache-Airflow-blue)](https://airflow.apache.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)](https://www.postgresql.org/)
+[![BigQuery](https://img.shields.io/badge/Google-BigQuery-blue)](https://cloud.google.com/bigquery)
 [![Python](https://img.shields.io/badge/Python-3.8+-green)](https://www.python.org/)
 
 A comprehensive, production-ready data analytics platform for COVID-19 pandemic data analysis. This system demonstrates modern data engineering best practices with a medallion architecture, automated orchestration, and ML-ready feature engineering.
@@ -19,13 +19,13 @@ Pandemic Insights is an end-to-end healthcare analytics engineering system that:
 ## 🏗️ Architecture
 
 ```
-Data Sources (CSV) → PostgreSQL → dbt (Medallion Architecture) → Analytics/ML
-                                        ↑
-                                   Airflow Orchestration
+Data Sources (CSV) → BigQuery → dbt (Medallion Architecture) → Analytics/ML
+                                      ↑
+                                 Airflow Orchestration
 ```
 
 **Key Components:**
-- **Data Storage**: PostgreSQL with multi-schema design
+- **Data Storage**: Google BigQuery with multi-dataset design
 - **Transformation**: dbt (Data Build Tool) with medallion architecture
 - **Orchestration**: Apache Airflow via Astronomer Cosmos
 - **Deployment**: Docker containerization
@@ -56,7 +56,7 @@ Data Sources (CSV) → PostgreSQL → dbt (Medallion Architecture) → Analytics
 
 ### Prerequisites
 - Python 3.8+
-- PostgreSQL 12+
+- Google Cloud Platform account with BigQuery enabled
 - Docker & Docker Compose (for Airflow)
 - Git
 
@@ -68,10 +68,13 @@ Data Sources (CSV) → PostgreSQL → dbt (Medallion Architecture) → Analytics
    cd Pandemic-Insights--An-End-to-End-Healthcare-Analytics-Engineering-System
    ```
 
-2. **Set up PostgreSQL database**
+2. **Set up BigQuery dataset**
    ```bash
-   createdb covid
-   psql -d covid -f "SCHEMA AND LOAD.sql"
+   # Create BigQuery dataset (via gcloud CLI or GCP Console)
+   gcloud config set project YOUR_PROJECT_ID
+   bq mk --dataset --location=US covid
+   # Load raw data using the provided shell script
+   ./raw_files_to_bigquery.sh
    ```
 
 3. **Install Python dependencies**
@@ -80,7 +83,7 @@ Data Sources (CSV) → PostgreSQL → dbt (Medallion Architecture) → Analytics
    ```
 
 4. **Configure dbt**
-   - Edit `~/.dbt/profiles.yml` with your database credentials
+   - Edit `~/.dbt/profiles.yml` with your BigQuery credentials
    - See [docs/SETUP.md](docs/SETUP.md) for detailed configuration
 
 5. **Run dbt models**
@@ -109,7 +112,7 @@ Comprehensive technical documentation is available in the `docs/` directory:
 
 | Layer | Technology |
 |-------|-----------|
-| Database | PostgreSQL |
+| Database | Google BigQuery |
 | Transformation | dbt (Data Build Tool) |
 | Orchestration | Apache Airflow + Astronomer Cosmos |
 | Languages | SQL, Python |
@@ -131,7 +134,8 @@ Comprehensive technical documentation is available in the `docs/` directory:
 │   └── raw/           # CSV source files
 ├── docs/              # Technical documentation
 ├── requirements.txt   # Python dependencies
-└── SCHEMA AND LOAD.sql # Database schema
+├── raw_files_to_bigquery.sh # BigQuery data loading script
+└── SCHEMA AND LOAD.sql # Legacy database schema (PostgreSQL)
 ```
 
 ## 🧪 Testing
