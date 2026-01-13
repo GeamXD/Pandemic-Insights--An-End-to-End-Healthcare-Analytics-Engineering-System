@@ -531,7 +531,7 @@ Use dbt profiles for different environments:
 
 ```yaml
 # ~/.dbt/profiles.yml
-covid:
+dbt_covid:
   target: dev
   outputs:
     dev:

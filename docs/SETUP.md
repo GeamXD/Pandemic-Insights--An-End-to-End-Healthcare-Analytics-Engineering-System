@@ -114,7 +114,7 @@ pip install -r requirements.txt
 Create or edit `~/.dbt/profiles.yml`:
 
 ```yaml
-covid:
+dbt_covid:
   target: dev
   outputs:
     dev:

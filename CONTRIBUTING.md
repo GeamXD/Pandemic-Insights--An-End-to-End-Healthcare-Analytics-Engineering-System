@@ -98,7 +98,7 @@ We welcome various types of contributions:
 
 3. **Configure dbt profile** (`~/.dbt/profiles.yml`):
    ```yaml
-   covid:
+   dbt_covid:
      target: dev
      outputs:
        dev:
