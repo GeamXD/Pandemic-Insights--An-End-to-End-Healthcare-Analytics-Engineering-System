@@ -69,7 +69,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Configure dbt profile
-# Edit ~/.dbt/profiles.yml with your database connection
+# Edit ~/.dbt/profiles.yml with your BigQuery connection
 ```
 
 ### 2. Working with dbt
@@ -252,7 +252,7 @@ airflow dags test dbt_covid_dag 2023-01-01
 #### 3. SQL Style Guide
 
 ```sql
--- Good: Clear, readable SQL
+-- Good: Clear, readable SQL (BigQuery syntax)
 SELECT
     -- Keys
     country_code,
@@ -262,8 +262,8 @@ SELECT
     SUM(new_cases) as total_cases,
     AVG(stringency_index) as avg_stringency,
     
-    -- Calculated fields
-    SUM(new_deaths)::FLOAT / NULLIF(SUM(new_cases), 0) * 100 as case_fatality_rate
+    -- Calculated fields (using BigQuery's SAFE_DIVIDE)
+    SAFE_DIVIDE(SUM(new_deaths), SUM(new_cases)) * 100 as case_fatality_rate
 
 FROM {{ ref('slv_covid_daily') }}
 WHERE date_key >= '2020-01-01'
@@ -368,12 +368,23 @@ models:
   - Tables: Bronze, Silver, Gold (better query performance)
   - Incremental: Very large time-series (not currently used)
 
-- **Add indexes** (outside dbt, in post-hooks or manually):
+- **Leverage BigQuery features**:
+  - Partitioning: Partition large tables by date
   ```sql
   {{ config(
-      post_hook=[
-          "CREATE INDEX IF NOT EXISTS idx_country_date ON {{ this }} (country_key, date_key)"
-      ]
+      materialized='table',
+      partition_by={
+          "field": "date_key",
+          "data_type": "date"
+      }
+  ) }}
+  ```
+  
+  - Clustering: Define clustering columns
+  ```sql
+  {{ config(
+      materialized='table',
+      cluster_by=["country_key", "date_key"]
   ) }}
   ```
 
@@ -382,7 +393,7 @@ models:
   SELECT *
   FROM {{ ref('large_table') }}
   {% if target.name == 'dev' %}
-  WHERE date_key >= CURRENT_DATE - INTERVAL '30 days'
+  WHERE date_key >= DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY)
   {% endif %}
   ```
 
@@ -535,20 +546,24 @@ dbt_covid:
   target: dev
   outputs:
     dev:
-      type: postgres
-      host: localhost
-      user: postgres
-      password: dev_password
-      database: covid_dev
-      schema: staging
+      type: bigquery
+      method: service-account
+      project: YOUR_PROJECT_ID
+      dataset: covid
+      location: US
+      keyfile: /path/to/dev-keyfile.json
+      threads: 4
+      timeout_seconds: 300
       
     prod:
-      type: postgres
-      host: prod-host
-      user: postgres
-      password: "{{ env_var('DBT_POSTGRES_PASSWORD') }}"
-      database: covid_prod
-      schema: staging
+      type: bigquery
+      method: service-account
+      project: YOUR_PROJECT_ID
+      dataset: covid
+      location: US
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      threads: 8
+      timeout_seconds: 600
 ```
 
 Run for specific environment:
@@ -591,7 +606,7 @@ dbt run --target prod
 - [dbt Documentation](https://docs.getdbt.com/)
 - [Apache Airflow Documentation](https://airflow.apache.org/docs/)
 - [Astronomer Documentation](https://docs.astronomer.io/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [BigQuery Documentation](https://cloud.google.com/bigquery/docs)
 
 ### Learning Resources
 - [dbt Learn](https://courses.getdbt.com/)

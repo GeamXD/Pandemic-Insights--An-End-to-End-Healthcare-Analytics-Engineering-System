@@ -86,8 +86,8 @@ Contributing to the project:
 
 ### SETUP.md
 Complete installation and configuration guide covering:
-- Software prerequisites (Python, PostgreSQL, Docker)
-- Step-by-step database setup
+- Software prerequisites (Python, Google Cloud SDK, Docker)
+- Step-by-step BigQuery dataset setup
 - dbt installation and configuration
 - Airflow deployment with Astronomer
 - Troubleshooting common issues
@@ -141,7 +141,7 @@ Developer guide and best practices covering:
 - [dbt Documentation](https://docs.getdbt.com/)
 - [Apache Airflow Documentation](https://airflow.apache.org/docs/)
 - [Astronomer Documentation](https://docs.astronomer.io/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [BigQuery Documentation](https://cloud.google.com/bigquery/docs)
 - [Project GitHub Repository](https://github.com/GeamXD/Pandemic-Insights--An-End-to-End-Healthcare-Analytics-Engineering-System)
 
 ## 📊 Documentation Statistics

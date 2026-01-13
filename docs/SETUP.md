@@ -6,7 +6,8 @@ This guide will walk you through setting up the Pandemic Insights analytics syst
 
 ### Required Software
 - **Python**: 3.8 or higher
-- **PostgreSQL**: 12 or higher
+- **Google Cloud SDK**: For BigQuery CLI access
+- **Google Cloud Platform Account**: With BigQuery enabled
 - **Docker**: 20.10 or higher (for Airflow)
 - **Docker Compose**: 1.29 or higher (for Airflow)
 - **Git**: 2.x or higher
@@ -24,76 +25,81 @@ git clone https://github.com/GeamXD/Pandemic-Insights--An-End-to-End-Healthcare-
 cd Pandemic-Insights--An-End-to-End-Healthcare-Analytics-Engineering-System
 ```
 
-### 2. Database Setup
+### 2. BigQuery Setup
 
-#### Create PostgreSQL Database
+#### Create BigQuery Project and Dataset
 
+**Option 1: Using GCP Console**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable BigQuery API
+4. Navigate to BigQuery in the console
+5. Create a dataset named `covid` with location `US`
+
+**Option 2: Using gcloud CLI**
 ```bash
-# Connect to PostgreSQL
-psql -U postgres
+# Set your project
+gcloud config set project YOUR_PROJECT_ID
 
-# Create database
-CREATE DATABASE covid;
+# Create the dataset
+bq mk --dataset --location=US YOUR_PROJECT_ID:covid
 
-# Connect to the covid database
-\c covid
-
-# Create raw schema
-CREATE SCHEMA IF NOT EXISTS raw_covid;
+# Verify the dataset was created
+bq ls
 ```
 
-#### Load Raw Data Schema
+#### Set Up Authentication
+
+**Create a Service Account:**
+```bash
+# Create service account
+gcloud iam service-accounts create dbt-bigquery-sa \
+    --display-name="dbt BigQuery Service Account"
+
+# Grant BigQuery permissions
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+    --member="serviceAccount:dbt-bigquery-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/bigquery.admin"
+
+# Create and download key
+gcloud iam service-accounts keys create ~/dbt-bigquery-key.json \
+    --iam-account=dbt-bigquery-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com
+```
+
+#### Load Raw Data
+
+Use the provided shell script to load CSV files into BigQuery:
 
 ```bash
 # From the project root directory
-psql -U postgres -d covid -f "SCHEMA AND LOAD.sql"
+./raw_files_to_bigquery.sh
 ```
 
-This script will create 18 raw tables in the `raw_covid` schema:
-- vaccine_administered
-- tests_conducted_7_day_avg
-- stringency_index
-- new_deaths_per_month
-- new_deaths_7_day_avg
-- new_cases_per_month
-- new_cases_7day_avg
-- median_age_and_life_expectancy
-- human_development_index
-- hospital_beds_and_handwashing
-- high_risk_age_groups
-- gross_domestic_product
-- diabetes_prevalence
-- death_rate_from_cardiovascular_disease
-- population
-- smoking
+Or manually load using BigQuery CLI:
+```bash
+# Example for loading one table
+bq load \
+  --source_format=CSV \
+  --skip_leading_rows=1 \
+  --autodetect \
+  YOUR_PROJECT_ID:covid.new_cases_7day_avg \
+  data/raw/new-cases-7day-avg.csv
 
-#### Load CSV Data
-
-You need to load the CSV files from the `data/raw/` directory into the PostgreSQL tables. You can use:
-
-**Option 1: psql COPY command**
-```sql
--- Example for one table
-\COPY raw_covid.new_cases_7day_avg FROM '/path/to/data/raw/new-cases-7day-avg.csv' DELIMITER ',' CSV HEADER;
+# For production, consider using explicit schemas:
+# bq load --source_format=CSV --skip_leading_rows=1 \
+#   --schema='Geography:STRING,date:STRING,Indicator:STRING,Count:STRING' \
+#   YOUR_PROJECT_ID:covid.new_cases_7day_avg data/raw/new-cases-7day-avg.csv
 ```
 
-**Option 2: Python script**
-```python
-import pandas as pd
-from sqlalchemy import create_engine
+#### Verify Data Load
 
-engine = create_engine('postgresql://postgres:password@localhost:5432/covid')
+```bash
+# List tables in the dataset
+bq ls YOUR_PROJECT_ID:covid
 
-# Load all CSV files
-csv_files = {
-    'new-cases-7day-avg.csv': 'new_cases_7day_avg',
-    'new-deaths-7-day-avg.csv': 'new_deaths_7_day_avg',
-    # ... add all other files
-}
-
-for csv_file, table_name in csv_files.items():
-    df = pd.read_csv(f'data/raw/{csv_file}')
-    df.to_sql(table_name, engine, schema='raw_covid', if_exists='replace', index=False)
+# Query a table to verify data
+bq query --use_legacy_sql=false \
+  'SELECT COUNT(*) as row_count FROM `YOUR_PROJECT_ID.covid.new_cases_7day_avg`'
 ```
 
 ### 3. dbt Setup
@@ -118,26 +124,39 @@ dbt_covid:
   target: dev
   outputs:
     dev:
-      type: postgres
-      host: localhost
-      user: postgres
-      password: your_password
-      port: 5432
-      dbname: covid
-      schema: staging
+      type: bigquery
+      method: service-account
+      project: YOUR_PROJECT_ID
+      dataset: covid
+      location: US
+      keyfile: /path/to/your/dbt-bigquery-key.json
       threads: 4
-      keepalives_idle: 0
+      timeout_seconds: 300
     
     prod:
-      type: postgres
-      host: your_prod_host
-      user: postgres
-      password: your_prod_password
-      port: 5432
-      dbname: covid
-      schema: staging
+      type: bigquery
+      method: service-account
+      project: YOUR_PROJECT_ID
+      dataset: covid
+      location: US
+      keyfile: /path/to/your/dbt-bigquery-key.json
       threads: 8
-      keepalives_idle: 0
+      timeout_seconds: 300
+```
+
+**Alternative: Using OAuth (for development)**
+```yaml
+dbt_covid:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: YOUR_PROJECT_ID
+      dataset: covid
+      location: US
+      threads: 4
+      timeout_seconds: 300
 ```
 
 #### Test dbt Connection
@@ -198,7 +217,7 @@ astro dev start
 
 This will start:
 - Airflow Webserver: http://localhost:8080
-- Postgres Database: localhost:5432
+- Postgres Database (Airflow metadata only): localhost:5432
 - Default credentials: admin/admin
 
 **Access Airflow UI:**
@@ -224,13 +243,12 @@ docker-compose logs -f
 #### Configure Airflow Connection
 
 In Airflow UI (Admin → Connections), create a new connection:
-- **Conn Id**: `postgres_covid`
-- **Conn Type**: Postgres
-- **Host**: host.docker.internal (for Docker) or localhost
-- **Schema**: covid
-- **Login**: postgres
-- **Password**: your_password
-- **Port**: 5432
+- **Conn Id**: `google_cloud_default`
+- **Conn Type**: Google Cloud
+- **Project Id**: YOUR_PROJECT_ID
+- **Keyfile Path**: (leave empty if using Keyfile JSON)
+- **Keyfile JSON**: Paste contents of your service account JSON key file
+- **Scopes**: https://www.googleapis.com/auth/bigquery
 
 #### Copy dbt Project to Airflow
 
@@ -263,21 +281,16 @@ dbt docs serve
 
 #### Verify Database Tables
 
-```sql
--- Connect to PostgreSQL
-psql -U postgres -d covid
+```bash
+# List datasets
+bq ls
 
--- Check schemas
-\dn
+# List tables in covid dataset
+bq ls YOUR_PROJECT_ID:covid
 
--- Check tables in each schema
-\dt raw_covid.*
-\dt bronze.*
-\dt silver.*
-\dt gold.*
-
--- Query a gold table
-SELECT * FROM gold.fact_covid_daily LIMIT 10;
+# Query a gold table
+bq query --use_legacy_sql=false \
+  'SELECT * FROM `YOUR_PROJECT_ID.covid.fact_covid_daily` LIMIT 10'
 ```
 
 ## Configuration Files
@@ -301,9 +314,7 @@ For Airflow, you can set these in `.env` file in `dbt_covid_dag/`:
 AIRFLOW_UID=50000
 _AIRFLOW_WWW_USER_USERNAME=admin
 _AIRFLOW_WWW_USER_PASSWORD=admin
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=covid
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/dbt-bigquery-key.json
 ```
 
 ## Troubleshooting
@@ -311,12 +322,13 @@ POSTGRES_DB=covid
 ### Common Issues
 
 #### 1. dbt Connection Error
-**Error**: `Could not connect to database`
+**Error**: `Could not connect to BigQuery`
 
 **Solution**:
-- Check PostgreSQL is running: `pg_isready`
-- Verify credentials in `~/.dbt/profiles.yml`
-- Test connection: `psql -U postgres -d covid`
+- Check service account permissions
+- Verify keyfile path in `~/.dbt/profiles.yml`
+- Test connection: `dbt debug`
+- Ensure BigQuery API is enabled
 
 #### 2. Airflow DAG Not Visible
 **Error**: DAG not showing in Airflow UI
@@ -330,7 +342,7 @@ POSTGRES_DB=covid
 **Error**: Models failing to build
 
 **Solution**:
-- Check raw data is loaded: `SELECT COUNT(*) FROM raw_covid.new_cases_7day_avg;`
+- Check raw data is loaded: `bq query --use_legacy_sql=false 'SELECT COUNT(*) FROM \`YOUR_PROJECT_ID.covid.new_cases_7day_avg\`'`
 - Run with verbose logging: `dbt run --debug`
 - Check model dependencies: `dbt list --select model_name+`
 
@@ -345,17 +357,22 @@ POSTGRES_DB=covid
 **Error**: Permission denied when running dbt
 
 **Solution**:
-- Check PostgreSQL user permissions
-- Grant necessary privileges:
-```sql
-GRANT CREATE ON SCHEMA bronze TO postgres;
-GRANT CREATE ON SCHEMA silver TO postgres;
-GRANT CREATE ON SCHEMA gold TO postgres;
+- Check BigQuery IAM permissions for service account
+- Ensure service account has `BigQuery Data Editor` and `BigQuery Job User` roles:
+```bash
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+    --member="serviceAccount:dbt-bigquery-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/bigquery.dataEditor"
+
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+    --member="serviceAccount:dbt-bigquery-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+    --role="roles/bigquery.jobUser"
 ```
 
 ### Getting Help
 
 - **dbt Documentation**: https://docs.getdbt.com/
+- **BigQuery Documentation**: https://cloud.google.com/bigquery/docs
 - **Airflow Documentation**: https://airflow.apache.org/docs/
 - **Astronomer Documentation**: https://docs.astronomer.io/
 - **Project Issues**: https://github.com/GeamXD/Pandemic-Insights--An-End-to-End-Healthcare-Analytics-Engineering-System/issues
@@ -375,13 +392,13 @@ After successful setup:
 - **Update dbt packages**: `dbt deps --upgrade`
 - **Update Python dependencies**: `pip install --upgrade -r requirements.txt`
 - **Update Airflow**: `astro dev upgrade` or update base image in Dockerfile
-- **Vacuum database**: Regular PostgreSQL maintenance
-- **Monitor disk space**: For Airflow logs and database
+- **Monitor BigQuery usage**: Check query costs and slot usage in GCP Console
+- **Monitor disk space**: For Airflow logs
 
 ### Backup
 
 Regularly backup:
-- PostgreSQL database
+- BigQuery datasets (using BigQuery export or snapshots)
 - dbt models and configuration
 - Airflow DAG files
 - Documentation

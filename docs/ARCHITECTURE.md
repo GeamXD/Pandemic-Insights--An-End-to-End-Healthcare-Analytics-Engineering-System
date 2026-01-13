@@ -13,10 +13,10 @@ Pandemic Insights is an end-to-end healthcare analytics engineering system desig
 │  - Vaccination data      - Testing data      - Policy data           │
 └────────────────────────┬────────────────────────────────────────────┘
                          │
-                         │ Load via SQL
+                         │ Load via BigQuery CLI/API
                          ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    PostgreSQL - raw_covid schema                     │
+│                    BigQuery - raw_covid dataset                      │
 │                     (Raw data storage layer)                         │
 └────────────────────────┬────────────────────────────────────────────┘
                          │
@@ -75,12 +75,12 @@ Pandemic Insights is an end-to-end healthcare analytics engineering system desig
 
 ### 1. Data Ingestion Layer
 - **Source**: CSV files in `/data/raw/` directory
-- **Tables**: 18 raw tables in PostgreSQL `raw_covid` schema
-- **Loading**: SQL scripts (`SCHEMA AND LOAD.sql`)
+- **Tables**: 18 raw tables in BigQuery `raw_covid` dataset
+- **Loading**: BigQuery CLI/API (shell script: `raw_files_to_bigquery.sh`)
 
 ### 2. Transformation Layer (dbt)
 - **Tool**: dbt (Data Build Tool)
-- **Database**: PostgreSQL
+- **Database**: Google BigQuery
 - **Project**: `dbt_covid` dbt project
 - **Profiles**: Configured in `~/.dbt/profiles.yml`
 
@@ -126,8 +126,8 @@ Pandemic Insights is an end-to-end healthcare analytics engineering system desig
 - **Deployment**: Dockerized via Astronomer
 
 ### 4. Storage Layer
-- **Database**: PostgreSQL
-- **Schemas**:
+- **Database**: Google BigQuery
+- **Datasets (Schemas)**:
   - `raw_covid`: Raw source data
   - `bronze`: Bronze layer tables
   - `silver`: Silver layer tables
@@ -138,9 +138,9 @@ Pandemic Insights is an end-to-end healthcare analytics engineering system desig
 ### Core Technologies
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| Database | PostgreSQL | Latest |
+| Database | Google BigQuery | Latest |
 | Transformation | dbt-core | Latest |
-| Database Adapter | dbt-postgres | Latest |
+| Database Adapter | dbt-bigquery | Latest |
 | Orchestration | Apache Airflow | via Astronomer Runtime 3.1-9 |
 | Containerization | Docker | Latest |
 | Airflow Framework | Astronomer Cosmos | Latest |
@@ -153,15 +153,15 @@ Pandemic Insights is an end-to-end healthcare analytics engineering system desig
 - **Code Quality**: black
 
 ### Multi-Database Support (Optional)
-The dbt project includes adapters for:
-- PostgreSQL (primary)
-- BigQuery
+The dbt project includes adapters for multiple platforms:
+- BigQuery (primary - currently in use)
+- PostgreSQL (legacy)
 - Snowflake
 - Redshift
 
 ## Data Flow
 
-1. **Ingestion**: CSV files → PostgreSQL `raw_covid` schema
+1. **Ingestion**: CSV files → BigQuery `raw_covid` dataset (via BigQuery CLI/API)
 2. **Staging**: dbt creates views referencing raw tables
 3. **Bronze**: dbt materializes typed and renamed tables
 4. **Silver**: dbt creates cleaned and joined datasets
@@ -202,7 +202,7 @@ The dbt project includes adapters for:
 ```
 Local Machine
 ├── dbt CLI
-├── PostgreSQL connection
+├── BigQuery connection (via service account or OAuth)
 └── Git repository
 ```
 
@@ -212,20 +212,20 @@ Docker Containers (via Astronomer)
 ├── Airflow Webserver
 ├── Airflow Scheduler
 ├── Airflow Worker
-├── PostgreSQL (metadata DB)
+├── PostgreSQL (metadata DB for Airflow only)
 └── dbt virtual environment
-    └── PostgreSQL connection (covid database)
+    └── BigQuery connection (covid dataset, via service account)
 ```
 
 ## Security Considerations
 
 1. **Credentials Management**:
-   - Database credentials stored in Airflow Connections
-   - dbt profiles use connection ID references
+   - BigQuery service account credentials stored in Airflow Connections
+   - dbt profiles use service account JSON or OAuth
    - No hardcoded credentials in code
 
 2. **Access Control**:
-   - Schema-level permissions in PostgreSQL
+   - BigQuery dataset-level IAM permissions
    - Airflow RBAC for DAG access
 
 3. **Data Privacy**:
@@ -235,9 +235,10 @@ Docker Containers (via Astronomer)
 ## Scalability Considerations
 
 1. **Incremental Processing**: Support for incremental models in dbt config
-2. **Partitioning**: Can be implemented for large fact tables
-3. **Multi-Database**: Adapters available for cloud data warehouses (BigQuery, Snowflake, Redshift)
-4. **Horizontal Scaling**: Airflow workers can be scaled
+2. **Partitioning**: BigQuery native table partitioning for large fact tables
+3. **Clustering**: BigQuery clustering for optimized queries
+4. **Cloud-Native**: BigQuery provides automatic scaling and query optimization
+5. **Horizontal Scaling**: Airflow workers can be scaled
 
 ## Monitoring and Observability
 

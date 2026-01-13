@@ -7,14 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Security
-- Removed service account key file (key.json) containing sensitive credentials from the repository to improve security and prevent accidental exposure
-
 ### Changed
+- **BREAKING**: Migrated from PostgreSQL to Google BigQuery as the primary data warehouse
+  - Updated all technical documentation to reflect BigQuery usage
+  - Modified DAG configuration to use BigQuery connection
+  - Updated SQL syntax in documentation examples for BigQuery compatibility
+  - Changed data loading process from SQL scripts to BigQuery CLI/API
 - Updated all technical documentation to use correct directory names:
   - `dbt_covid/` instead of `covid/`
   - `dbt_covid_dag/` instead of `covid_dbt_dag/`
 - Fixed inconsistencies between documentation and actual repository structure
+
+### Security
+- Removed service account key file (key.json) containing sensitive credentials from the repository to improve security and prevent accidental exposure
 
 ### Added
 - Comprehensive technical documentation suite
@@ -57,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Policy measures (stringency index)
 
 #### Database
-- PostgreSQL schema creation script (`SCHEMA AND LOAD.sql`)
+- Initial PostgreSQL schema creation script (`SCHEMA AND LOAD.sql`) - **Note: Migrated to BigQuery in later version**
 - Multi-schema design: `raw_covid`, `bronze`, `silver`, `gold`
 - 18 raw data tables
 
@@ -79,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - dbt test framework setup
 
 ### Technical Stack
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL (Initial version) → Migrated to Google BigQuery
 - **Transformation**: dbt (Data Build Tool)
 - **Orchestration**: Apache Airflow + Astronomer Cosmos
 - **Languages**: SQL, Python
