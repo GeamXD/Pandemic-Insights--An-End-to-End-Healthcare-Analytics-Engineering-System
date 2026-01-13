@@ -72,7 +72,7 @@ SELECT * FROM {{ source('raw_covid', 'new_cases_7day_avg') }}
 
 **Purpose**: Type casting, column renaming, and timestamping  
 **Materialization**: Tables  
-**Dataset**: `bronze` (in BigQuery, these are in the `covid` dataset with `bronze` schema prefix)
+**Dataset**: All tables are in the main `covid` dataset in BigQuery, organized by schema prefixes (e.g., `bronze_table_name`)
 **Pattern**: `brz__*`
 
 **Transformations**:
@@ -97,7 +97,7 @@ FROM {{ ref('stg_raw_covid__new_cases_7day_avg') }}
 
 **Purpose**: Cleaned, joined, and conformed business data  
 **Materialization**: Tables  
-**Dataset**: `silver` (in BigQuery, these are in the `covid` dataset with `silver` schema prefix)
+**Dataset**: All tables are in the main `covid` dataset in BigQuery, organized by schema prefixes (e.g., `silver_table_name`)
 **Pattern**: `slv_*`
 
 **Models**:
@@ -162,7 +162,7 @@ Gender-specific health metrics.
 
 **Purpose**: Business-ready star schema (facts and dimensions) and ML features  
 **Materialization**: Tables  
-**Dataset**: `gold` (in BigQuery, these are in the `covid` dataset with `gold` schema prefix)
+**Dataset**: All tables are in the main `covid` dataset in BigQuery, organized by schema prefixes (e.g., `gold_table_name`)
 **Pattern**: `fact_*`, `dim_*`, `ml_*`
 
 #### Dimension Tables
@@ -199,7 +199,7 @@ Date dimension for time intelligence.
 - `month`: Month number
 - `month_name`: Month name
 - `quarter`: Quarter
-- `day_of_week`: Day of week number (0-6, where 0 = Sunday in BigQuery)
+- `day_of_week`: Day of week number (1-7 in BigQuery, where 1 = Sunday)
 - `day_of_week_name`: Day name
 - `day_of_month`: Day of month
 - `day_of_year`: Day of year

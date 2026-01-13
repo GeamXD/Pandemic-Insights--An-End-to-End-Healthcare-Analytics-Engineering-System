@@ -84,6 +84,11 @@ bq load \
   --autodetect \
   YOUR_PROJECT_ID:covid.new_cases_7day_avg \
   data/raw/new-cases-7day-avg.csv
+
+# For production, consider using explicit schemas:
+# bq load --source_format=CSV --skip_leading_rows=1 \
+#   --schema='Geography:STRING,date:STRING,Indicator:STRING,Count:STRING' \
+#   YOUR_PROJECT_ID:covid.new_cases_7day_avg data/raw/new-cases-7day-avg.csv
 ```
 
 #### Verify Data Load
