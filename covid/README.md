@@ -9,7 +9,7 @@ This dbt project implements a layered data transformation pipeline for COVID-19 
 ### Profile
 - **Name**: `covid`
 - **Target**: `dev` (default)
-- **Database**: PostgreSQL
+- **Database**: Google BigQuery
 - **Schema**: `staging` (default)
 
 ### Model Materialization Strategy

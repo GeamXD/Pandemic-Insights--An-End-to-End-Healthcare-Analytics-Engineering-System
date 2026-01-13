@@ -22,7 +22,7 @@ Pandemic Insights is a comprehensive end-to-end healthcare analytics engineering
 
 - **dbt (Data Build Tool)**: For data transformation and modeling
 - **Apache Airflow**: For workflow orchestration
-- **PostgreSQL**: As the data warehouse
+- **Google BigQuery**: As the cloud data warehouse
 - **Astronomer**: For Airflow deployment and management
 
 The project follows the medallion architecture (Bronze, Silver, Gold layers) to ensure data quality, maintainability, and scalability.
@@ -72,8 +72,8 @@ The system follows a layered data architecture:
 
 ### Technology Stack
 - **Orchestration**: Apache Airflow (via Astronomer)
-- **Transformation**: dbt-core with PostgreSQL adapter
-- **Data Warehouse**: PostgreSQL
+- **Transformation**: dbt-core with BigQuery adapter
+- **Data Warehouse**: Google BigQuery
 - **Containerization**: Docker
 - **Python Version**: 3.x
 - **Additional Libraries**: pandas, numpy, scikit-learn, xgboost, lightgbm, plotly
@@ -176,7 +176,7 @@ The system follows a layered data architecture:
   curl -sSL install.astronomer.io | sudo bash -s
   ```
 - **Python**: 3.8 or higher (for dbt development)
-- **PostgreSQL Client**: For database management (optional)
+- **Google Cloud SDK**: For BigQuery access and authentication
 - **Git**: For version control
 
 ### System Requirements
@@ -202,38 +202,47 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Set Up PostgreSQL Database
+### 3. Set Up Google BigQuery
 
-#### Option A: Local PostgreSQL
-```sql
--- Create database
-CREATE DATABASE covid;
-
--- Create schema
-CREATE SCHEMA raw_covid;
-
--- Run the schema creation script
-\i "SCHEMA AND LOAD.sql"
-```
-
-#### Option B: Using Docker
+#### Create BigQuery Dataset
 ```bash
-docker run --name postgres-covid \
-  -e POSTGRES_DB=covid \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  -d postgres:13
+# Install Google Cloud SDK if not already installed
+# https://cloud.google.com/sdk/docs/install
+
+# Authenticate with Google Cloud
+gcloud auth login
+gcloud auth application-default login
+
+# Set your project
+gcloud config set project YOUR_PROJECT_ID
+
+# Create dataset
+bq mk --dataset --location=US YOUR_PROJECT_ID:covid
+
+# Create schema for raw data
+bq mk --dataset YOUR_PROJECT_ID:raw_covid
 ```
+
+#### Alternative: Using BigQuery Console
+1. Go to BigQuery Console (https://console.cloud.google.com/bigquery)
+2. Create a new dataset named `covid`
+3. Create a new dataset named `raw_covid`
+4. Upload CSV files from `data/raw/` to BigQuery tables in `raw_covid` dataset
 
 ### 4. Load Raw Data
 ```bash
 # Navigate to data directory
 cd data/raw
 
-# Use psql to load data (example)
-psql -h localhost -U postgres -d covid -c "\copy raw_covid.new_cases_7day_avg FROM 'new-cases-7day-avg.csv' CSV HEADER"
+# Use bq command-line tool to load data (example)
+bq load --source_format=CSV \
+  --skip_leading_rows=1 \
+  YOUR_PROJECT_ID:raw_covid.new_cases_7day_avg \
+  new-cases-7day-avg.csv \
+  Geography:STRING,date:STRING,Indicator:STRING,Count:STRING
+
 # Repeat for all CSV files...
+# Or use the BigQuery Console to upload CSV files via the UI
 ```
 
 ### 5. Configure dbt Profile
@@ -243,15 +252,31 @@ covid:
   target: dev
   outputs:
     dev:
-      type: postgres
-      host: localhost
-      port: 5432
-      user: postgres
-      password: postgres
-      dbname: covid
-      schema: staging
+      type: bigquery
+      method: oauth
+      project: YOUR_PROJECT_ID
+      dataset: staging
       threads: 4
-      keepalives_idle: 0
+      timeout_seconds: 300
+      location: US
+      priority: interactive
+```
+
+For service account authentication:
+```yaml
+covid:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: YOUR_PROJECT_ID
+      dataset: staging
+      threads: 4
+      keyfile: /path/to/service-account-key.json
+      timeout_seconds: 300
+      location: US
+      priority: interactive
 ```
 
 ### 6. Set Up Airflow (Astronomer)
@@ -284,20 +309,18 @@ The Airflow DAG is configured in `covid_dbt_dag/dags/covid_dag.py`:
 - **Schedule**: Daily (`@daily`)
 - **Start Date**: September 10, 2023
 - **Catchup**: Disabled
-- **Connection**: Uses `postgres_covid` Airflow connection
+- **Connection**: Uses `bigquery_covid` Airflow connection
 
 #### Setting Up Airflow Connection
 In the Airflow UI, create a connection:
 1. Navigate to **Admin > Connections**
 2. Click **+** to add new connection
 3. Configure:
-   - **Conn Id**: `postgres_covid`
-   - **Conn Type**: `Postgres`
-   - **Host**: `postgres` (or `host.docker.internal` for local)
-   - **Database**: `covid`
-   - **Login**: `postgres`
-   - **Password**: `postgres`
-   - **Port**: `5432`
+   - **Conn Id**: `bigquery_covid`
+   - **Conn Type**: `Google Cloud`
+   - **Project Id**: `YOUR_PROJECT_ID`
+   - **Keyfile Path**: `/path/to/service-account-key.json` (or use Keyfile JSON)
+   - **Scopes**: `https://www.googleapis.com/auth/bigquery`
 
 ## 📚 Data Sources
 
@@ -461,9 +484,9 @@ dbt test --select source:*
 ### Deploying to Production
 
 #### 1. Production Database Setup
-- Create production PostgreSQL instance
-- Apply schema: `psql -f "SCHEMA AND LOAD.sql"`
-- Load production data
+- Create production BigQuery project and datasets
+- Set up appropriate IAM permissions
+- Configure service account with necessary roles
 
 #### 2. Update dbt Profile
 Add production target to `~/.dbt/profiles.yml`:
@@ -474,14 +497,15 @@ covid:
     dev:
       # ... dev config ...
     prod:
-      type: postgres
-      host: prod-postgres.example.com
-      port: 5432
-      user: prod_user
-      password: "{{ env_var('PROD_DB_PASSWORD') }}"
-      dbname: covid
-      schema: staging
+      type: bigquery
+      method: service-account
+      project: PROD_PROJECT_ID
+      dataset: staging
       threads: 8
+      keyfile: "{{ env_var('PROD_KEYFILE_PATH') }}"
+      timeout_seconds: 300
+      location: US
+      priority: interactive
 ```
 
 #### 3. Deploy Airflow to Astronomer
@@ -508,8 +532,10 @@ Update Airflow connections with production credentials.
 Error: Could not connect to database
 ```
 **Solution**: 
-- Verify PostgreSQL is running: `pg_isready -h localhost -p 5432`
-- Check `~/.dbt/profiles.yml` credentials
+- Verify Google Cloud authentication: `gcloud auth application-default login`
+- Check `~/.dbt/profiles.yml` configuration
+- Verify project ID and dataset names
+- Ensure service account has BigQuery permissions
 - Test connection: `dbt debug`
 
 #### 2. Airflow DAG Not Appearing
@@ -579,7 +605,7 @@ This project is for educational and research purposes.
 ## 🙏 Acknowledgments
 
 - Data sourced from public health organizations
-- Built with dbt, Airflow, and PostgreSQL
+- Built with dbt, Airflow, and Google BigQuery
 - Inspired by modern data engineering best practices
 
 ---

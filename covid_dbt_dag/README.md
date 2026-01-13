@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Astronomer Airflow project orchestrates the COVID-19 analytics data pipeline using Cosmos to run dbt transformations. The project uses Docker containers to provide a consistent local development environment.
+This Astronomer Airflow project orchestrates the COVID-19 analytics data pipeline using Cosmos to run dbt transformations. The project uses Docker containers to provide a consistent local development environment and integrates with Google BigQuery as the data warehouse.
 
 ## Project Structure
 
@@ -28,9 +28,11 @@ covid_dbt_dag/
 
 1. **Scheduler**: Monitors and triggers DAG runs
 2. **Webserver**: Provides the Airflow UI (port 8080)
-3. **Postgres Metadata DB**: Stores Airflow metadata
+3. **Postgres Metadata DB**: Stores Airflow metadata (not the data warehouse)
 4. **Triggerer**: Handles deferred tasks
 5. **DAG Processor**: Parses DAG files
+
+**Note**: The Airflow metadata database uses PostgreSQL, but the data warehouse for COVID-19 data is Google BigQuery.
 
 ### Data Pipeline Flow
 
@@ -88,16 +90,18 @@ covid_dbt_dag/
 profile_config = ProfileConfig(
     profile_name="covid",
     target_name="dev",
-    profile_mapping=PostgresUserPasswordProfileMapping(
-        conn_id="postgres_covid",  # Airflow connection ID
+    profile_mapping=GoogleCloudServiceAccountKeyProfileMapping(
+        conn_id="bigquery_covid",  # Airflow connection ID
         profile_args={
-            "dbname": "covid",
-            "schema": "staging"
+            "project": "YOUR_PROJECT_ID",
+            "dataset": "staging"
         },
         disable_event_tracking=True
     )
 )
 ```
+
+**Note**: The actual implementation may use `PostgresUserPasswordProfileMapping` in the code, but should be updated to use BigQuery profile mapping for production use.
 
 **Project Configuration**:
 ```python
@@ -157,19 +161,19 @@ Open browser to: `http://localhost:8080`
 - Username: `admin`
 - Password: `admin`
 
-#### 4. Configure PostgreSQL Connection
+#### 4. Configure BigQuery Connection
 
 In Airflow UI:
 1. Navigate to **Admin → Connections**
 2. Click **+** to add new connection
 3. Fill in details:
-   - **Connection Id**: `postgres_covid`
-   - **Connection Type**: `Postgres`
-   - **Host**: `host.docker.internal` (Mac/Windows) or `172.17.0.1` (Linux)
-   - **Schema**: `covid`
-   - **Login**: `postgres`
-   - **Password**: `postgres`
-   - **Port**: `5432`
+   - **Connection Id**: `bigquery_covid`
+   - **Connection Type**: `Google Cloud`
+   - **Project Id**: `YOUR_PROJECT_ID`
+   - **Keyfile Path**: `/path/to/service-account-key.json`
+   - **Scopes**: `https://www.googleapis.com/auth/bigquery`
+
+Alternatively, you can provide the keyfile JSON directly in the Keyfile JSON field.
 
 #### 5. Enable and Run the DAG
 1. In Airflow UI, find `dbt_covid_dag`
@@ -186,18 +190,22 @@ The `Dockerfile` extends the Astronomer Runtime image and installs dbt:
 FROM astrocrpublic.azurecr.io/runtime:3.1-9
 
 RUN python -m venv dbt_venv && source dbt_venv/bin/activate && \
-    pip install --no-cache-dir dbt-core dbt-postgres && deactivate
+    pip install --no-cache-dir dbt-core dbt-bigquery && deactivate
 ```
 
+**Note**: Update to install `dbt-bigquery` instead of `dbt-postgres` for BigQuery compatibility.
+
 #### docker-compose.override.yml
-Overrides PostgreSQL port for local development:
+Overrides configuration for local development:
 
 ```yaml
 services:
   postgres:
     ports:
-      - "5433:5432"  # Avoids conflict with local PostgreSQL on 5432
+      - "5433:5432"  # Airflow metadata DB (not the data warehouse)
 ```
+
+**Note**: This is for Airflow's metadata database only. The COVID-19 data warehouse is Google BigQuery.
 
 ## Development Workflow
 
@@ -320,13 +328,14 @@ astro dev restart
 ```
 
 #### Connection Error
-**Symptoms**: Tasks fail with "Connection refused"
+**Symptoms**: Tasks fail with "Connection refused" or authentication errors
 
 **Solutions**:
-- Verify `postgres_covid` connection is configured
+- Verify `bigquery_covid` connection is configured
 - Test connection in Airflow UI
-- Check host is `host.docker.internal` (not `localhost`)
-- Ensure PostgreSQL is running on host machine
+- Check service account permissions in Google Cloud Console
+- Ensure service account has BigQuery Data Editor and Job User roles
+- Verify keyfile path is accessible from Airflow container
 
 #### dbt Command Not Found
 **Symptoms**: "dbt: command not found"

@@ -1,6 +1,8 @@
 # SQL Query Examples
 
-This document provides practical SQL query examples for analyzing COVID-19 data in the Pandemic Insights system. All queries assume you're connected to the PostgreSQL database with access to the `gold` schema.
+This document provides practical SQL query examples for analyzing COVID-19 data in the Pandemic Insights system. All queries assume you're connected to the Google BigQuery data warehouse with access to the datasets.
+
+**Note**: These queries use BigQuery SQL syntax. Dataset references follow the pattern `project.dataset.table` or simply `dataset.table` if using the default project.
 
 ## Table of Contents
 
