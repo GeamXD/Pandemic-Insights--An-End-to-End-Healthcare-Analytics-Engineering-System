@@ -453,7 +453,7 @@ ORDER BY date_key;
 
 Generate and view dbt documentation:
 ```bash
-cd covid
+cd dbt_covid
 dbt docs generate
 dbt docs serve
 ```

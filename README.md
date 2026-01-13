@@ -85,14 +85,14 @@ Data Sources (CSV) → PostgreSQL → dbt (Medallion Architecture) → Analytics
 
 5. **Run dbt models**
    ```bash
-   cd covid
+   cd dbt_covid
    dbt deps
    dbt run
    ```
 
 6. **Start Airflow (optional)**
    ```bash
-   cd covid_dbt_dag
+   cd dbt_covid_dag
    astro dev start
    ```
 
@@ -120,11 +120,11 @@ Comprehensive technical documentation is available in the `docs/` directory:
 ## 📁 Project Structure
 
 ```
-├── covid/               # dbt project
+├── dbt_covid/          # dbt project
 │   ├── models/         # dbt models (staging, bronze, silver, gold)
 │   ├── tests/          # Data quality tests
 │   └── dbt_project.yml # dbt configuration
-├── covid_dbt_dag/      # Airflow project
+├── dbt_covid_dag/      # Airflow project
 │   ├── dags/           # Airflow DAGs
 │   └── Dockerfile      # Airflow container
 ├── data/               # Raw data files
@@ -139,7 +139,7 @@ Comprehensive technical documentation is available in the `docs/` directory:
 Run dbt tests to ensure data quality:
 
 ```bash
-cd covid
+cd dbt_covid
 dbt test
 ```
 

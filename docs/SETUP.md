@@ -114,7 +114,7 @@ pip install -r requirements.txt
 Create or edit `~/.dbt/profiles.yml`:
 
 ```yaml
-covid:
+dbt_covid:
   target: dev
   outputs:
     dev:
@@ -143,7 +143,7 @@ covid:
 #### Test dbt Connection
 
 ```bash
-cd covid
+cd dbt_covid
 dbt debug
 ```
 
@@ -152,7 +152,7 @@ You should see `All checks passed!` if everything is configured correctly.
 #### Install dbt Packages
 
 ```bash
-cd covid
+cd dbt_covid
 dbt deps
 ```
 
@@ -187,7 +187,7 @@ curl -sSL install.astronomer.io | sudo bash -s
 
 **Initialize and Start Airflow:**
 ```bash
-cd covid_dbt_dag
+cd dbt_covid_dag
 
 # Initialize Astronomer project (if needed)
 astro dev init
@@ -209,7 +209,7 @@ This will start:
 #### Option B: Using Docker Compose
 
 ```bash
-cd covid_dbt_dag
+cd dbt_covid_dag
 
 # Start Airflow
 docker-compose up -d
@@ -234,14 +234,14 @@ In Airflow UI (Admin → Connections), create a new connection:
 
 #### Copy dbt Project to Airflow
 
-The DAG expects the dbt project at `/usr/local/airflow/dags/covid`. This is handled by the volume mount in `docker-compose.override.yml`.
+The DAG expects the dbt project at `/usr/local/airflow/dags/dbt_covid`. This is handled by the volume mount in `docker-compose.override.yml`.
 
 ### 5. Verify Installation
 
 #### Check dbt Models
 
 ```bash
-cd covid
+cd dbt_covid
 
 # List all models
 dbt ls
@@ -286,16 +286,16 @@ SELECT * FROM gold.fact_covid_daily LIMIT 10;
 
 | File | Purpose | Location |
 |------|---------|----------|
-| `dbt_project.yml` | dbt project configuration | `covid/` |
+| `dbt_project.yml` | dbt project configuration | `dbt_covid/` |
 | `profiles.yml` | dbt connection profiles | `~/.dbt/` |
-| `requirements.txt` | Python dependencies | Root & `covid_dbt_dag/` |
-| `packages.yml` | dbt package dependencies | `covid/` |
-| `covid_dag.py` | Airflow DAG definition | `covid_dbt_dag/dags/` |
-| `Dockerfile` | Airflow container image | `covid_dbt_dag/` |
+| `requirements.txt` | Python dependencies | Root & `dbt_covid_dag/` |
+| `packages.yml` | dbt package dependencies | `dbt_covid/` |
+| `covid_dag.py` | Airflow DAG definition | `dbt_covid_dag/dags/` |
+| `Dockerfile` | Airflow container image | `dbt_covid_dag/` |
 
 ### Environment Variables
 
-For Airflow, you can set these in `.env` file in `covid_dbt_dag/`:
+For Airflow, you can set these in `.env` file in `dbt_covid_dag/`:
 
 ```env
 AIRFLOW_UID=50000
