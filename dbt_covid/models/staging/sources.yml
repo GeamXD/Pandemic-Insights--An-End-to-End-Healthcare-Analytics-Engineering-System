@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: covid
+    tables:
+      - name: death-rate-from-cardiovascular-disease
+      - name: diabetes-prevalence
+      - name: gross-domestic-product
+      - name: high-risk-age-groups
+      - name: hopsital-beds-and-handwashing
+      - name: human-development-index
+      - name: median-age-and-life-expectancy
+      - name: new-cases-7day-avg
+      - name: new-cases-per-month
+      - name: new-deaths-7-day-avg
+      - name: new-deaths-per-month
+      - name: population
+      - name: smoking
+      - name: stringency-index
+      - name: tests-conducted-7-day-avg
+      - name: vaccine-administered

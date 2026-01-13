@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/covid" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/covid/models/bronze/brz__gross_domestic_product.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/dim_country.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/dim_date.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/dim_gender.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/fact_covid_daily.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/fact_covid_monthly.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/fact_gender_health.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/fact_vaccination.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/gold/ml_features.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/silver/slv_covid_daily.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/silver/slv_covid_monthly.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/silver/slv_gender_health.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/dbt_covid/models/silver/slv_geo_health.sql" dialect="GenericSQL" />
   </component>
 </project>

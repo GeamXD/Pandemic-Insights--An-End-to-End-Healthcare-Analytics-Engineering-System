@@ -28,3 +28,79 @@ Happy modeling!
 [0m19:34:13.960591 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1088cec40>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x107196f90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1088ab570>]}
 [0m19:34:13.961029 [debug] [MainThread]: Flushing usage events
 [0m19:34:15.157032 [debug] [MainThread]: An error was encountered while trying to flush usage events
+==================== 2026-01-13T07:44:49.889083Z | 019bb650-88de-7931-8985-f436fc16a453 ====================
+07:44:49.889335 [info ]: Installing dbt project and profile setup
+07:44:49.892021 [info ]: Info Created .vscode/extensions.json with dbt extension recommendation
+07:44:49.892197 [info ]: Success Project created successfully!
+07:44:49.892217 [info ]: Info Project name: jaffle_shop
+07:44:49.892234 [info ]: Info Project directory: jaffle_shop
+07:44:49.892252 [info ]: Info Setting up your profile...
+07:44:49.892798 [info ]: Loading ~/.dbt/profiles.yml
+07:44:49.893750 [info ]: Info Creating new profile...
+07:45:02.595783 [info ]: No dbt_cloud.yml found - proceeding without cloud pre-population
+07:45:32.109229 [info ]: Success Profile written to /Users/geamxd/.dbt/profiles.yml
+07:45:32.109412 [info ]: Validating profile inputs, adapters, and connection
+
+07:45:32.109447 [info ]: dbt-fusion 2.0.0-preview.92
+07:45:32.109917 [info ]: Started loading project
+07:45:32.114542 [info ]: Loading ~/.dbt/profiles.yml
+07:45:32.116914 [info ]: Finished loading project [  0.01s]
+07:45:32.117220 [info ]: Started debugging
+07:45:32.117309 [info ]: Debugging profile: dev
+07:45:32.117346 [info ]: Debugging dbt version: 2.0.0-preview.92
+07:45:32.117360 [info ]: Debugging platform: macos aarch64 (unix)
+07:45:32.117409 [info ]: Debugging adapter type: bigquery (remote)
+07:45:32.134805 [info ]: Debugging dependencies:
+  git: OK
+07:45:32.135099 [info ]: Debugging connection:
+  "database": "healthcare-analytics-471307",
+  "schema": "covid",
+  "method": "oauth",
+  "dataproc_batch": null
+07:45:44.221612 [debug]: Query executed on node unknown:
+select 1 as id
+07:45:44.223890 [info ]: Debugging connection test: OK
+07:45:44.224809 [info ]: Debugged All checks passed!
+07:45:44.225006 [info ]: Finished debugging [ 12.11s]
+07:45:44.733279 [info ]: 
+==================== Execution Summary =====================
+Finished 'init' successfully for target 'dev' [54.8s]
+==================== 2026-01-13T07:46:48.930360Z | 019bb652-59e1-7ab0-a90a-895e6670c5e1 ====================
+07:46:48.930422 [info ]: Installing dbt project and profile setup
+07:46:48.933752 [info ]: Info Created .vscode/extensions.json with dbt extension recommendation
+07:46:48.933801 [info ]: Success Project created successfully!
+07:46:48.933813 [info ]: Info Project name: jaffle_shop
+07:46:48.933822 [info ]: Info Project directory: jaffle_shop
+07:46:48.933831 [info ]: Info Setting up your profile...
+07:46:48.933984 [info ]: Loading ~/.dbt/profiles.yml
+07:46:48.935405 [info ]: Profile 'jaffle_shop' already exists. You can choose how to proceed.
+07:47:00.761370 [info ]: Info Creating new profile...
+07:47:07.484193 [info ]: No dbt_cloud.yml found - proceeding without cloud pre-population
+07:47:19.464726 [info ]: Info Backup created at /Users/geamxd/.dbt/profiles.yml.bkp
+07:47:19.465221 [info ]: Success Profile written to /Users/geamxd/.dbt/profiles.yml
+07:47:19.465304 [info ]: Validating profile inputs, adapters, and connection
+
+07:47:19.465327 [info ]: dbt-fusion 2.0.0-preview.92
+07:47:19.465488 [info ]: Started loading project
+07:47:19.466685 [info ]: Loading ~/.dbt/profiles.yml
+07:47:19.467739 [info ]: Finished loading project [  0.00s]
+07:47:19.467855 [info ]: Started debugging
+07:47:19.467907 [info ]: Debugging profile: dev
+07:47:19.467946 [info ]: Debugging dbt version: 2.0.0-preview.92
+07:47:19.467962 [info ]: Debugging platform: macos aarch64 (unix)
+07:47:19.467981 [info ]: Debugging adapter type: bigquery (remote)
+07:47:19.490019 [info ]: Debugging dependencies:
+  git: OK
+07:47:19.490102 [info ]: Debugging connection:
+  "database": "healthcare-analytics-471307",
+  "schema": "covid",
+  "method": "oauth",
+  "dataproc_batch": null
+07:47:24.969606 [debug]: Query executed on node unknown:
+select 1 as id
+07:47:24.970450 [info ]: Debugging connection test: OK
+07:47:24.970868 [info ]: Debugged All checks passed!
+07:47:24.970898 [info ]: Finished debugging [  5.50s]
+07:47:25.581987 [info ]: 
+==================== Execution Summary =====================
+Finished 'init' successfully for target 'dev' [36.7s]
